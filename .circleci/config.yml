@@ -24,6 +24,15 @@ jobs:
           command: |
             echo "Deploying to Render Staging"
             curl $RENDER_STAGING_DEPLOYHOOK
+  deploy-to-render-production:
+    docker:
+      - image: cimg/base:current
+    steps:
+      - run:
+          name: Deploy to Render Production
+          command: |
+            echo "Deploying to Render Production"
+            curl $RENDER_PRODUCTION_DEPLOYHOOK
 
 workflows:
   run-tests:
@@ -35,6 +44,17 @@ workflows:
       - deploy-to-render-staging:
           requires:
             - run-component-tests
+          filters:
+            branches:
+              only:
+                - main
+      - hold:
+          type: approval
+          requires:
+            - deploy-to-render-staging
+      - deploy-to-render-production:
+          requires:
+            - hold
           filters:
             branches:
               only:
